@@ -22,6 +22,7 @@ public class CrimeListFragment extends Fragment {
     private static final int REQUEST_CRIME = 1;
     private RecyclerView mCrimeRecyclerView;
     private CrimeAdapter mAdapter;
+    private int mItemChanged;
 
     @Nullable
     @Override
@@ -44,7 +45,7 @@ public class CrimeListFragment extends Fragment {
             mAdapter = new CrimeAdapter(crimes);
             mCrimeRecyclerView.setAdapter(mAdapter);
         } else {
-            mAdapter.notifyDataSetChanged();
+            mAdapter.notifyItemChanged(mItemChanged);
         }
     }
 
@@ -78,7 +79,7 @@ public class CrimeListFragment extends Fragment {
         @Override
         public void onBindViewHolder(CrimeHolder holder, int position) {
             Crime crime = mCrimes.get(position);
-            holder.bindCrime(crime);
+            holder.bindCrime(crime, position);
         }
 
         @Override
@@ -93,6 +94,8 @@ public class CrimeListFragment extends Fragment {
         private TextView mDateTextView;
         private CheckBox mSolvedCheckBox;
 
+        private int crimeIndex;
+
         private Crime mCrime;
 
         public CrimeHolder(View itemView) {
@@ -104,7 +107,8 @@ public class CrimeListFragment extends Fragment {
             itemView.setOnClickListener(this);
         }
 
-        public void bindCrime(Crime crime) {
+        public void bindCrime(Crime crime, int position) {
+            crimeIndex = position;
             mCrime = crime;
             mTitleTextView.setText(crime.getTitle());
             mDateTextView.setText(crime.getDate().toString());
@@ -114,6 +118,7 @@ public class CrimeListFragment extends Fragment {
         @Override
         public void onClick(View v) {
             Intent intent = CrimeActivity.newIntent(getActivity(), mCrime.getId());
+            mItemChanged = crimeIndex;
             startActivityForResult(intent, REQUEST_CRIME);
         }
     }
