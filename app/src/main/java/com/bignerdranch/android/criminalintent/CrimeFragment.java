@@ -18,6 +18,7 @@ import android.text.format.DateFormat;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.ViewTreeObserver;
 import android.widget.Button;
 import android.widget.CheckBox;
 import android.widget.CompoundButton;
@@ -50,6 +51,7 @@ public class CrimeFragment extends Fragment {
     private CheckBox mSolvedCheckBox;
     private ImageButton mPhotoButton;
     private ImageView mPhotoView;
+    private ViewTreeObserver mObserver;
 
     public static CrimeFragment newInstance(UUID crimeId) {
         Bundle args = new Bundle();
@@ -163,12 +165,19 @@ public class CrimeFragment extends Fragment {
         });
 
         mPhotoView = (ImageView)v.findViewById(R.id.crime_photo);
-        updatePhotoView();
         mPhotoView.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 FragmentManager fm = getFragmentManager();
                 ImagePreviewFragment.newInstance(mPhotoFile).show(fm, DIALOG_PHOTO);
+            }
+        });
+
+        mObserver = mPhotoView.getViewTreeObserver();
+        mObserver.addOnGlobalLayoutListener(new ViewTreeObserver.OnGlobalLayoutListener() {
+            @Override
+            public void onGlobalLayout() {
+                updatePhotoView();
             }
         });
 
@@ -196,7 +205,7 @@ public class CrimeFragment extends Fragment {
             Cursor c = getActivity().getContentResolver().query(contactUri, queryFields, null, null, null);
             try {
                 // Double-check that you actually got results
-                if(c.getCount() == 0) {
+                if (c.getCount() == 0) {
                     return;
                 }
 
@@ -209,8 +218,6 @@ public class CrimeFragment extends Fragment {
             } finally {
                 c.close();
             }
-        } else if(requestCode == REQUEST_PHOTO) {
-            updatePhotoView();
         }
     }
 
@@ -242,9 +249,11 @@ public class CrimeFragment extends Fragment {
     private void updatePhotoView() {
         if(mPhotoFile == null || !mPhotoFile.exists()) {
             mPhotoView.setImageDrawable(null);
+            mPhotoView.setClickable(false);
         } else {
-            Bitmap bitmap = PictureUtils.getScaledBitmap(mPhotoFile.getPath(), getActivity());
+            Bitmap bitmap = PictureUtils.getScaledBitmap(mPhotoFile.getPath(), mPhotoView.getWidth(), mPhotoView.getHeight());
             mPhotoView.setImageBitmap(bitmap);
+            mPhotoView.setClickable(true);
         }
     }
 
